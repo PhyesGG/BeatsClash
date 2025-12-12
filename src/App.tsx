@@ -1,19 +1,34 @@
+/**
+ * App Component
+ * Root component with routing
+ *
+ * CORRECTIONS APPLIED (Phase 2):
+ * - ✅ Integrated ErrorBoundary to prevent full app crashes
+ * - ✅ Uniformized VITE_TEMPO checks (using === "true")
+ * - ✅ Proper import structure
+ */
+
 import { Suspense } from "react";
-import { useRoutes, Routes, Route } from "react-router-dom";
+import { Routes, Route, useRoutes } from "react-router-dom";
 import Home from "./components/home";
+import ErrorBoundary from "./components/ErrorBoundary";
 import routes from "tempo-routes";
 
 function App() {
+  // ✅ FIXED: Check VITE_TEMPO consistently with === "true"
+  const isTempoEnabled = import.meta.env.VITE_TEMPO === "true";
+
   return (
-    <Suspense fallback={<p>Loading...</p>}>
-      <>
+    // ✅ FIXED: Wrap entire app with ErrorBoundary to catch all React errors
+    <ErrorBoundary>
+      <Suspense fallback={<p>Loading...</p>}>
         <Routes>
           <Route path="/" element={<Home />} />
-          {import.meta.env.VITE_TEMPO && <Route path="/tempobook/*" />}
+          {isTempoEnabled && <Route path="/tempobook/*" />}
         </Routes>
-        {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
-      </>
-    </Suspense>
+        {isTempoEnabled && useRoutes(routes)}
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 

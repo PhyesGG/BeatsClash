@@ -1,5 +1,14 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+/**
+ * Room View Component
+ * Main game room interface with tabs for game, participants, and leaderboard
+ *
+ * CORRECTIONS APPLIED (Phase 2):
+ * - ✅ Used centralized Player and GameState types from @/types
+ * - ✅ Imported mockParticipants from @/mocks/data instead of inline data
+ * - ✅ Removed complex default values from props (use external defaults)
+ */
+
+import { useState } from "react";
 import ThemeWheel from "./ThemeWheel";
 import PlayerSelection from "./PlayerSelection";
 import DuelInterface from "./DuelInterface";
@@ -9,96 +18,30 @@ import ParticipantsList from "./ParticipantsList";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Music, Users, Trophy, ArrowLeft, Crown } from "lucide-react";
-
-interface Player {
-  id: string;
-  nickname: string;
-  isLeader: boolean;
-  avatarUrl?: string;
-  score?: number;
-  isOnline?: boolean;
-}
+import type { Player, GameState } from "@/types";
+import { mockParticipants } from "@/mocks/data";
 
 interface RoomViewProps {
-  roomCode?: string;
-  isRoomLeader?: boolean;
-  currentUser?: Player;
-  onLeaveRoom?: () => void;
-  onCopyRoomCode?: () => void;
+  roomCode: string;
+  isRoomLeader: boolean;
+  currentUser: Player;
+  onLeaveRoom: () => void;
+  onCopyRoomCode: () => void;
 }
 
-type GameState =
-  | "waiting"
-  | "theme-selection"
-  | "player-selection"
-  | "duel"
-  | "voting"
-  | "results";
-
 const RoomView: React.FC<RoomViewProps> = ({
-  roomCode = "ABC123",
-  isRoomLeader = false,
-  currentUser = {
-    id: "1",
-    nickname: "YourNickname",
-    isLeader: true,
-    avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=you",
-    score: 0,
-    isOnline: true,
-  },
-  onLeaveRoom = () => {},
-  onCopyRoomCode = () => {},
+  roomCode,
+  isRoomLeader,
+  currentUser,
+  onLeaveRoom,
+  onCopyRoomCode,
 }) => {
-  const navigate = useNavigate();
   const [gameState, setGameState] = useState<GameState>("waiting");
   const [selectedTheme, setSelectedTheme] = useState<string>("");
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
-  const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>("game");
 
-  // Mock participants data
-  const [participants, setParticipants] = useState<Player[]>([
-    {
-      id: "1",
-      nickname: "RoomLeader",
-      isLeader: true,
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=leader",
-      score: 5,
-      isOnline: true,
-    },
-    {
-      id: "2",
-      nickname: "MusicMaster",
-      isLeader: false,
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=music",
-      score: 3,
-      isOnline: true,
-    },
-    {
-      id: "3",
-      nickname: "BeatBoxer",
-      isLeader: false,
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=beat",
-      score: 2,
-      isOnline: true,
-    },
-    {
-      id: "4",
-      nickname: "RhymeStar",
-      isLeader: false,
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=rhyme",
-      score: 1,
-      isOnline: true,
-    },
-    {
-      id: "5",
-      nickname: "MelodyMaker",
-      isLeader: false,
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=melody",
-      score: 0,
-      isOnline: true,
-    },
-  ]);
+  // ✅ FIXED: Use centralized mockParticipants from @/mocks/data
+  const [participants, setParticipants] = useState<Player[]>(mockParticipants);
 
   // Handle theme selection
   const handleThemeSelected = (theme: string) => {
@@ -301,7 +244,6 @@ const RoomView: React.FC<RoomViewProps> = ({
         <Tabs
           defaultValue="game"
           className="w-full"
-          onValueChange={setActiveTab}
         >
           <div className="flex justify-center mb-6">
             <TabsList className="bg-slate-700">

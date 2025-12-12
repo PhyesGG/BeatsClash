@@ -1,66 +1,26 @@
-import React from "react";
+/**
+ * Participants List Component
+ * Displays list of participants in a room with online status
+ *
+ * CORRECTIONS APPLIED (Phase 2):
+ * - ✅ Used centralized Player type from @/types instead of local Participant interface
+ * - ✅ Imported mockParticipants from @/mocks/data for default value
+ */
+
 import { ScrollArea } from "../ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Crown } from "lucide-react";
-
-interface Participant {
-  id: string;
-  nickname: string;
-  isLeader: boolean;
-  avatarUrl?: string;
-  score?: number;
-  isOnline?: boolean;
-}
+import type { Player } from "@/types";
+import { mockParticipants } from "@/mocks/data";
 
 interface ParticipantsListProps {
-  participants?: Participant[];
+  participants?: Player[];
   className?: string;
 }
 
 const ParticipantsList = ({
-  participants = [
-    {
-      id: "1",
-      nickname: "RoomLeader",
-      isLeader: true,
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=leader",
-      score: 5,
-      isOnline: true,
-    },
-    {
-      id: "2",
-      nickname: "MusicMaster",
-      isLeader: false,
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=music",
-      score: 3,
-      isOnline: true,
-    },
-    {
-      id: "3",
-      nickname: "BeatBoxer",
-      isLeader: false,
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=beat",
-      score: 2,
-      isOnline: true,
-    },
-    {
-      id: "4",
-      nickname: "RhymeStar",
-      isLeader: false,
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=rhyme",
-      score: 1,
-      isOnline: false,
-    },
-    {
-      id: "5",
-      nickname: "MelodyMaker",
-      isLeader: false,
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=melody",
-      score: 0,
-      isOnline: true,
-    },
-  ],
+  participants = mockParticipants,
   className = "",
 }: ParticipantsListProps) => {
   return (

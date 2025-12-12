@@ -40,7 +40,10 @@ export function generateRoomCode(): string {
   if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     crypto.getRandomValues(randomValues);
     for (let i = 0; i < 6; i++) {
-      result += characters[randomValues[i] % characters.length];
+      const randomValue = randomValues[i];
+      if (randomValue !== undefined) {
+        result += characters[randomValue % characters.length];
+      }
     }
   } else {
     // Fallback

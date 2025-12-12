@@ -4,7 +4,7 @@
  * Prevents the entire app from crashing when a component fails
  */
 
-import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 
@@ -34,7 +34,7 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log error to console (in production, send to error tracking service)
     console.error("ErrorBoundary caught an error:", error, errorInfo);
 
@@ -60,7 +60,7 @@ class ErrorBoundary extends Component<Props, State> {
     window.location.href = "/";
   };
 
-  render(): ReactNode {
+  override render(): ReactNode {
     if (this.state.hasError) {
       // Custom fallback UI if provided
       if (this.props.fallback) {

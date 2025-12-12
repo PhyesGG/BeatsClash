@@ -1,17 +1,20 @@
-import React, { useState } from "react";
+/**
+ * Leaderboard Component
+ * Displays player rankings with wins and win rates
+ *
+ * CORRECTIONS APPLIED (Phase 2):
+ * - ✅ Division by zero already protected in getWinRate function
+ * - ✅ Used centralized LeaderboardPlayer type from @/types
+ */
+
+import { useState } from "react";
 import { Trophy, Medal, Award, ChevronUp, ChevronDown } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-interface Player {
-  id: string;
-  nickname: string;
-  wins: number;
-  totalDuels: number;
-}
+import type { LeaderboardPlayer } from "@/types";
 
 interface LeaderboardProps {
-  players?: Player[];
+  players?: LeaderboardPlayer[];
   isVisible?: boolean;
   onToggleVisibility?: () => void;
 }

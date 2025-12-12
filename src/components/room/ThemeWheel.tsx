@@ -1,8 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
+/**
+ * Theme Wheel Component
+ * Spinning wheel for random theme selection
+ *
+ * CORRECTIONS APPLIED (Phase 2):
+ * - ✅ Imported musicThemes from centralized mocks/data.ts
+ * - ✅ Removed duplicate theme definitions
+ */
+
+import React, { useState, useRef } from "react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, RotateCcw } from "lucide-react";
+import { musicThemes } from "@/mocks/data";
 
 interface ThemeWheelProps {
   onThemeSelected?: (theme: string) => void;
@@ -10,38 +20,8 @@ interface ThemeWheelProps {
   isRoomLeader?: boolean;
 }
 
-const themes = [
-  "Meilleur feat",
-  "De la bonne trap",
-  "Emotionnel",
-  "Tap in",
-  "-18",
-  "OST Jeu vidéo",
-  "Musique d'anime",
-  "BO de film",
-  "Instru",
-  "Meilleur couplet",
-  "Rap US",
-  "Rap FR",
-  "RnB",
-  "Son de princesse",
-  "Par cœur",
-  "Chill",
-  "Solo q",
-  "Sport",
-  "Dance",
-  "Sous coté mainstream",
-  "All OST / Soundtrack",
-  "Meilleur son 2023",
-  "POP",
-  "Voiture nuit",
-  "Heartbreak",
-  "Son nul",
-  "Summer",
-  "Winter",
-  "Colors",
-  "Son of all time",
-];
+// ✅ FIXED: Use centralized musicThemes from mocks/data.ts
+const themes = musicThemes;
 
 const ThemeWheel: React.FC<ThemeWheelProps> = ({
   onThemeSelected = () => {},
@@ -70,7 +50,10 @@ const ThemeWheel: React.FC<ThemeWheelProps> = ({
       const themeIndex = Math.floor((normalizedRotation / 360) * themes.length);
       const selectedIndex = themes.length - 1 - (themeIndex % themes.length);
 
-      setSelectedTheme(themes[selectedIndex]);
+      const selectedThemeValue = themes[selectedIndex];
+      if (selectedThemeValue) {
+        setSelectedTheme(selectedThemeValue);
+      }
       setSpinning(false);
       setShowControls(true);
     }, 3000); // Match this with the CSS transition duration
@@ -96,7 +79,7 @@ const ThemeWheel: React.FC<ThemeWheelProps> = ({
   const segmentAngle = 360 / themes.length;
   const wheelSegments = themes.map((theme, index) => {
     const startAngle = index * segmentAngle;
-    const endAngle = (index + 1) * segmentAngle;
+    // const endAngle = (index + 1) * segmentAngle; // Unused for now
 
     // Alternate colors for better visibility
     const backgroundColor = index % 2 === 0 ? "bg-purple-600" : "bg-indigo-700";
