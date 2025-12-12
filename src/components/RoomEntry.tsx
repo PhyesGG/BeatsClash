@@ -1,5 +1,19 @@
+/**
+ * Room Entry Component
+ * Handles joining existing rooms or creating new ones
+ *
+ * CORRECTIONS APPLIED:
+ * - Added Zod validation for nickname and room code
+ * - Integrated React Hook Form with Zod resolver
+ * - Added proper error messages for validation
+ * - Improved form UX with validation feedback
+ * - Used centralized validators from @/lib/validators
+ */
+
 import React, { useState } from "react";
 import { Music, Users, Plus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Card,
   CardHeader,
@@ -11,32 +25,58 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  joinRoomSchema,
+  createRoomSchema,
+  type JoinRoomInput,
+  type CreateRoomInput,
+} from "@/lib/validators";
 
 interface RoomEntryProps {
   onJoinRoom?: (nickname: string, roomCode: string) => void;
   onCreateRoom?: (nickname: string) => void;
 }
 
-const RoomEntry = ({
+const RoomEntry: React.FC<RoomEntryProps> = ({
   onJoinRoom = () => {},
   onCreateRoom = () => {},
-}: RoomEntryProps) => {
-  const [nickname, setNickname] = useState("");
-  const [roomCode, setRoomCode] = useState("");
+}) => {
   const [activeTab, setActiveTab] = useState("join");
 
-  const handleJoinRoom = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (nickname.trim() && roomCode.trim()) {
-      onJoinRoom(nickname, roomCode);
-    }
+  // Form for joining room
+  const {
+    register: registerJoin,
+    handleSubmit: handleSubmitJoin,
+    formState: { errors: errorsJoin, isSubmitting: isSubmittingJoin },
+  } = useForm<JoinRoomInput>({
+    resolver: zodResolver(joinRoomSchema),
+    mode: "onBlur", // Validate on blur for better UX
+  });
+
+  // Form for creating room
+  const {
+    register: registerCreate,
+    handleSubmit: handleSubmitCreate,
+    formState: { errors: errorsCreate, isSubmitting: isSubmittingCreate },
+  } = useForm<CreateRoomInput>({
+    resolver: zodResolver(createRoomSchema),
+    mode: "onBlur",
+  });
+
+  /**
+   * Handle join room form submission
+   * ✅ FIXED: Added Zod validation before calling parent handler
+   */
+  const onSubmitJoin = (data: JoinRoomInput) => {
+    onJoinRoom(data.nickname, data.roomCode.toUpperCase());
   };
 
-  const handleCreateRoom = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (nickname.trim()) {
-      onCreateRoom(nickname);
-    }
+  /**
+   * Handle create room form submission
+   * ✅ FIXED: Added Zod validation before calling parent handler
+   */
+  const onSubmitCreate = (data: CreateRoomInput) => {
+    onCreateRoom(data.nickname);
   };
 
   return (
@@ -53,22 +93,6 @@ const RoomEntry = ({
         </CardHeader>
 
         <CardContent>
-          <div className="mb-4">
-            <label
-              htmlFor="nickname"
-              className="block text-sm font-medium mb-1"
-            >
-              Your Nickname
-            </label>
-            <Input
-              id="nickname"
-              placeholder="Enter your nickname"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="w-full"
-            />
-          </div>
-
           <Tabs
             defaultValue="join"
             value={activeTab}
@@ -86,8 +110,30 @@ const RoomEntry = ({
               </TabsTrigger>
             </TabsList>
 
+            {/* Join Room Tab */}
             <TabsContent value="join">
-              <form onSubmit={handleJoinRoom}>
+              <form onSubmit={handleSubmitJoin(onSubmitJoin)}>
+                <div className="mb-4">
+                  <label
+                    htmlFor="join-nickname"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    Your Nickname
+                  </label>
+                  <Input
+                    id="join-nickname"
+                    placeholder="Enter your nickname"
+                    {...registerJoin("nickname")}
+                    className="w-full"
+                    aria-invalid={!!errorsJoin.nickname}
+                  />
+                  {errorsJoin.nickname && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errorsJoin.nickname.message}
+                    </p>
+                  )}
+                </div>
+
                 <div className="mb-4">
                   <label
                     htmlFor="roomCode"
@@ -97,34 +143,64 @@ const RoomEntry = ({
                   </label>
                   <Input
                     id="roomCode"
-                    placeholder="Enter room code"
-                    value={roomCode}
-                    onChange={(e) => setRoomCode(e.target.value)}
-                    className="w-full"
+                    placeholder="Enter room code (e.g., ABC123)"
+                    {...registerJoin("roomCode")}
+                    className="w-full uppercase"
+                    maxLength={6}
+                    aria-invalid={!!errorsJoin.roomCode}
                   />
+                  {errorsJoin.roomCode && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errorsJoin.roomCode.message}
+                    </p>
+                  )}
                 </div>
+
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={!nickname.trim() || !roomCode.trim()}
+                  disabled={isSubmittingJoin}
                 >
-                  Join Room
+                  {isSubmittingJoin ? "Joining..." : "Join Room"}
                 </Button>
               </form>
             </TabsContent>
 
+            {/* Create Room Tab */}
             <TabsContent value="create">
-              <form onSubmit={handleCreateRoom}>
+              <form onSubmit={handleSubmitCreate(onSubmitCreate)}>
+                <div className="mb-4">
+                  <label
+                    htmlFor="create-nickname"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    Your Nickname
+                  </label>
+                  <Input
+                    id="create-nickname"
+                    placeholder="Enter your nickname"
+                    {...registerCreate("nickname")}
+                    className="w-full"
+                    aria-invalid={!!errorsCreate.nickname}
+                  />
+                  {errorsCreate.nickname && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errorsCreate.nickname.message}
+                    </p>
+                  )}
+                </div>
+
                 <p className="text-sm text-muted-foreground mb-4">
                   Create a new room and become the room leader. You'll be able
                   to control the game flow.
                 </p>
+
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={!nickname.trim()}
+                  disabled={isSubmittingCreate}
                 >
-                  Create New Room
+                  {isSubmittingCreate ? "Creating..." : "Create New Room"}
                 </Button>
               </form>
             </TabsContent>

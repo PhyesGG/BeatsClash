@@ -3,9 +3,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import { tempo } from "tempo-devtools/dist/vite";
 
-const conditionalPlugins: [string, Record<string, any>][] = [];
+const conditionalPlugins: [string, Record<string, unknown>][] = [];
 
-// @ts-ignore
+// Add Tempo devtools plugin conditionally
 if (process.env.TEMPO === "true") {
   conditionalPlugins.push(["tempo-devtools/swc", {}]);
 }
@@ -32,8 +32,6 @@ export default defineConfig({
     },
   },
   server: {
-    // @ts-ignore
-    allowedHosts: true,
     host: true, // This allows the server to be accessible from outside
   },
   build: {
