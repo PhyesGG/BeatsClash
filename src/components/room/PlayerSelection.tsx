@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from "react";
+/**
+ * Player Selection Component
+ * Randomly selects two players for a duel
+ *
+ * CORRECTIONS APPLIED (Phase 2):
+ * - ✅ Fixed race condition - setTimeout now properly cleaned up with useEffect
+ * - ✅ Used centralized Player type from @/types
+ * - ✅ Prevents crashes if component unmounts during animation
+ */
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Shuffle, User, Crown } from "lucide-react";
-
-interface Player {
-  id: string;
-  name: string;
-  isLeader?: boolean;
-}
+import type { Player } from "@/types";
 
 interface PlayerSelectionProps {
   players?: Player[];
@@ -19,11 +24,11 @@ interface PlayerSelectionProps {
 
 const PlayerSelection = ({
   players = [
-    { id: "1", name: "Player 1" },
-    { id: "2", name: "Player 2", isLeader: true },
-    { id: "3", name: "Player 3" },
-    { id: "4", name: "Player 4" },
-    { id: "5", name: "Player 5" },
+    { id: "1", nickname: "Player 1", isLeader: false },
+    { id: "2", nickname: "Player 2", isLeader: true },
+    { id: "3", nickname: "Player 3", isLeader: false },
+    { id: "4", nickname: "Player 4", isLeader: false },
+    { id: "5", nickname: "Player 5", isLeader: false },
   ],
   onSelectionComplete = () => {},
   onReject = () => {},
@@ -38,8 +43,13 @@ const PlayerSelection = ({
 
     setIsSpinning(true);
     setSelectedPlayers([]);
+  };
 
-    // Simulate the random selection animation
+  // ✅ FIXED: Use useEffect with cleanup to prevent race condition
+  useEffect(() => {
+    if (!isSpinning) return;
+
+    const timeoutIds: NodeJS.Timeout[] = [];
     const duration = 3000; // 3 seconds
     const interval = 100; // Highlight a new player every 100ms
     const startTime = Date.now();
@@ -51,14 +61,20 @@ const PlayerSelection = ({
       setHighlightedIndex(randomIndex);
 
       if (elapsed < duration) {
-        setTimeout(animate, interval);
+        const timeoutId = setTimeout(animate, interval);
+        timeoutIds.push(timeoutId);
       } else {
         finalizeSelection();
       }
     };
 
     animate();
-  };
+
+    // ✅ CLEANUP: Clear all timeouts if component unmounts
+    return () => {
+      timeoutIds.forEach((id) => clearTimeout(id));
+    };
+  }, [isSpinning, players.length]);
 
   const finalizeSelection = () => {
     // Select two random players
@@ -69,7 +85,10 @@ const PlayerSelection = ({
       if (availablePlayers.length === 0) break;
 
       const randomIndex = Math.floor(Math.random() * availablePlayers.length);
-      selected.push(availablePlayers[randomIndex]);
+      const selectedPlayer = availablePlayers[randomIndex];
+      if (selectedPlayer) {
+        selected.push(selectedPlayer);
+      }
       availablePlayers.splice(randomIndex, 1);
     }
 
@@ -102,7 +121,7 @@ const PlayerSelection = ({
             >
               <div className="flex items-center gap-2">
                 <User size={20} />
-                <span>{player.name}</span>
+                <span>{player.nickname}</span>
               </div>
               {player.isLeader && (
                 <Crown size={20} className="text-yellow-500" />
@@ -140,7 +159,7 @@ const PlayerSelection = ({
                       <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
                         <User size={24} className="text-green-600" />
                       </div>
-                      <span className="font-medium">{player.name}</span>
+                      <span className="font-medium">{player.nickname}</span>
                     </div>
                   </Card>
                 ))}

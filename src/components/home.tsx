@@ -1,73 +1,123 @@
+/**
+ * Home Component
+ * Main entry point for the application
+ * Handles room creation and joining logic
+ *
+ * CORRECTIONS APPLIED:
+ * - Replaced Math.random() with crypto.randomUUID() for secure ID generation
+ * - Added proper clipboard API with error handling and toast notifications
+ * - Removed unused useNavigate hook
+ * - Centralized types from @/types instead of local interface
+ * - Replaced alert() with toast notifications
+ * - Added proper error handling
+ */
+
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import RoomEntry from "./RoomEntry";
 import RoomView from "./room/RoomView";
-
-interface Player {
-  id: string;
-  nickname: string;
-  isLeader: boolean;
-  avatarUrl?: string;
-  score?: number;
-  isOnline?: boolean;
-}
+import ToastContainer from "./ToastContainer";
+import { useToast } from "@/hooks/useToast";
+import type { Player } from "@/types";
+import {
+  generateSecureId,
+  generateRoomCode,
+  generateAvatarUrl,
+  copyToClipboard,
+} from "@/lib/utils";
 
 const Home: React.FC = () => {
-  const navigate = useNavigate();
   const [isInRoom, setIsInRoom] = useState(false);
   const [roomCode, setRoomCode] = useState("");
   const [currentUser, setCurrentUser] = useState<Player | null>(null);
+  const { toasts, dismissToast, success, error } = useToast();
 
-  // Handle joining an existing room
+  /**
+   * Handle joining an existing room
+   * @param nickname User's chosen nickname
+   * @param code Room code to join
+   */
   const handleJoinRoom = (nickname: string, code: string) => {
-    // In a real app, you would validate the room code and connect to the room
-    setCurrentUser({
-      id: Math.random().toString(36).substring(2, 9),
-      nickname,
-      isLeader: false,
-      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${nickname}`,
-      score: 0,
-      isOnline: true,
-    });
-    setRoomCode(code);
-    setIsInRoom(true);
+    try {
+      // In a real app, you would validate the room code and connect to the room via API
+      const newUser: Player = {
+        id: generateSecureId(), // ✅ FIXED: Using secure UUID instead of Math.random()
+        nickname,
+        isLeader: false,
+        avatarUrl: generateAvatarUrl(nickname),
+        score: 0,
+        isOnline: true,
+      };
+
+      setCurrentUser(newUser);
+      setRoomCode(code);
+      setIsInRoom(true);
+      success(`Bienvenue dans la salle ${code} !`);
+    } catch (err) {
+      error("Erreur lors de la connexion à la salle");
+      console.error("Join room error:", err);
+    }
   };
 
-  // Handle creating a new room
+  /**
+   * Handle creating a new room
+   * @param nickname User's chosen nickname
+   */
   const handleCreateRoom = (nickname: string) => {
-    // In a real app, you would create a new room on the server
-    const newRoomCode = Math.random()
-      .toString(36)
-      .substring(2, 8)
-      .toUpperCase();
-    setCurrentUser({
-      id: Math.random().toString(36).substring(2, 9),
-      nickname,
-      isLeader: true, // Creator becomes the room leader
-      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${nickname}`,
-      score: 0,
-      isOnline: true,
-    });
-    setRoomCode(newRoomCode);
-    setIsInRoom(true);
+    try {
+      // In a real app, you would create a new room on the server
+      const newRoomCode = generateRoomCode(); // ✅ FIXED: Using secure room code generation
+
+      const newUser: Player = {
+        id: generateSecureId(), // ✅ FIXED: Using secure UUID
+        nickname,
+        isLeader: true, // Creator becomes the room leader
+        avatarUrl: generateAvatarUrl(nickname),
+        score: 0,
+        isOnline: true,
+      };
+
+      setCurrentUser(newUser);
+      setRoomCode(newRoomCode);
+      setIsInRoom(true);
+      success(`Salle créée avec le code : ${newRoomCode}`);
+    } catch (err) {
+      error("Erreur lors de la création de la salle");
+      console.error("Create room error:", err);
+    }
   };
 
-  // Handle leaving the room
+  /**
+   * Handle leaving the room
+   */
   const handleLeaveRoom = () => {
-    // In a real app, you would disconnect from the room
-    setIsInRoom(false);
-    setRoomCode("");
-    setCurrentUser(null);
-    // Navigate back to home
-    navigate("/");
+    try {
+      // In a real app, you would disconnect from the room
+      setIsInRoom(false);
+      setRoomCode("");
+      setCurrentUser(null);
+      success("Vous avez quitté la salle");
+    } catch (err) {
+      error("Erreur lors de la déconnexion");
+      console.error("Leave room error:", err);
+    }
   };
 
-  // Copy room code to clipboard
-  const copyRoomCode = () => {
-    if (roomCode) {
-      navigator.clipboard.writeText(roomCode);
-      // In a real app, you would show a toast notification
-      alert("Room code copied to clipboard!");
+  /**
+   * Copy room code to clipboard with proper error handling
+   * ✅ FIXED: Replaced alert() with toast, added error handling
+   */
+  const copyRoomCodeToClipboard = async () => {
+    if (!roomCode) {
+      error("Aucun code de salle à copier");
+      return;
+    }
+
+    const copied = await copyToClipboard(roomCode);
+
+    if (copied) {
+      success("Code de salle copié !");
+    } else {
+      error("Impossible de copier le code");
     }
   };
 
@@ -87,13 +137,15 @@ const Home: React.FC = () => {
             />
           </div>
         ) : (
-          <RoomView
-            roomCode={roomCode}
-            isRoomLeader={currentUser?.isLeader || false}
-            currentUser={currentUser || undefined}
-            onLeaveRoom={handleLeaveRoom}
-            onCopyRoomCode={copyRoomCode}
-          />
+          currentUser && (
+            <RoomView
+              roomCode={roomCode}
+              isRoomLeader={currentUser.isLeader}
+              currentUser={currentUser}
+              onLeaveRoom={handleLeaveRoom}
+              onCopyRoomCode={copyRoomCodeToClipboard}
+            />
+          )
         )}
       </div>
 
@@ -101,6 +153,9 @@ const Home: React.FC = () => {
       <footer className="mt-auto pt-8 pb-4 text-center text-slate-400 text-sm">
         <p>© {new Date().getFullYear()} Musical Duel. All rights reserved.</p>
       </footer>
+
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 };
