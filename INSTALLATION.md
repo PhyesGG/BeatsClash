@@ -13,7 +13,7 @@ Avant de commencer, assurez-vous d'avoir installé sur votre machine :
 - **Git** - [Télécharger Git](https://git-scm.com/)
 - Un éditeur de code (recommandé : [VS Code](https://code.visualstudio.com/))
 
-### Vérifier les installations
+### ⚠️ Vérifier les installations (IMPORTANT)
 
 Ouvrez un terminal et exécutez les commandes suivantes pour vérifier les versions :
 
@@ -22,6 +22,8 @@ node --version    # Devrait afficher v18.x.x ou supérieur
 npm --version     # Devrait afficher 9.x.x ou supérieur
 git --version     # Devrait afficher 2.x.x ou supérieur
 ```
+
+**❌ Si vous avez Node.js v12, v14 ou v16** : Votre version est **trop ancienne** et le projet ne fonctionnera pas. Consultez la section [Mettre à jour Node.js](#problème--version-de-nodejs-trop-ancienne-critique) ci-dessous avant de continuer.
 
 ---
 
@@ -144,6 +146,111 @@ Voici la liste complète des commandes npm disponibles :
 ---
 
 ## 🔧 Résolution des problèmes
+
+### ❌ Problème : Version de Node.js trop ancienne (CRITIQUE)
+
+**Symptômes :**
+- Erreurs `EBADENGINE` lors de `npm install`
+- Erreur `SyntaxError: Unexpected reserved word` avec `await`
+- Erreur `SyntaxError: Unexpected token '?'` avec `??`
+- Message : `current: { node: 'v12.22.9' }` ou version inférieure à v18
+
+**Cause :** Votre version de Node.js est trop ancienne. Ce projet nécessite **Node.js v18 ou supérieur**.
+
+**Solution : Mettre à jour Node.js**
+
+#### Option 1 : Utiliser NVM (Recommandé - Linux/Mac)
+
+NVM (Node Version Manager) permet de gérer facilement plusieurs versions de Node.js.
+
+1. **Installer NVM :**
+   ```bash
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+   ```
+
+2. **Redémarrer le terminal** ou exécuter :
+   ```bash
+   source ~/.bashrc
+   # Ou sur Mac :
+   source ~/.zshrc
+   ```
+
+3. **Installer Node.js v20 (LTS) :**
+   ```bash
+   nvm install 20
+   nvm use 20
+   nvm alias default 20
+   ```
+
+4. **Vérifier la version :**
+   ```bash
+   node --version  # Devrait afficher v20.x.x
+   npm --version   # Devrait afficher 10.x.x
+   ```
+
+5. **Retourner dans le dossier du projet et réinstaller :**
+   ```bash
+   cd ~/Téléchargements/BeatsClash-main
+   rm -rf node_modules package-lock.json
+   npm install
+   npm run dev
+   ```
+
+#### Option 2 : Installation directe depuis le site officiel
+
+1. **Désinstaller l'ancienne version :**
+   ```bash
+   # Ubuntu/Debian
+   sudo apt remove nodejs npm
+
+   # Nettoyer les résidus
+   sudo apt autoremove
+   ```
+
+2. **Télécharger Node.js v20 LTS :**
+   - Visitez : https://nodejs.org/
+   - Téléchargez la version **LTS (Long Term Support)** - v20.x.x ou v22.x.x
+
+3. **Installer via NodeSource (Ubuntu/Debian) :**
+   ```bash
+   # Configuration du repository NodeSource pour Node.js 20.x
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+   # Installation
+   sudo apt-get install -y nodejs
+
+   # Vérification
+   node --version  # Devrait afficher v20.x.x
+   npm --version   # Devrait afficher 10.x.x
+   ```
+
+4. **Retourner dans le dossier du projet et réinstaller :**
+   ```bash
+   cd ~/Téléchargements/BeatsClash-main
+   rm -rf node_modules package-lock.json
+   npm install
+   npm run dev
+   ```
+
+#### Option 3 : Utiliser n (Alternative à NVM)
+
+```bash
+# Installer n
+sudo npm install -g n
+
+# Installer la dernière version LTS
+sudo n lts
+
+# Vérifier
+node --version
+```
+
+**✅ Après la mise à jour :**
+- Supprimez `node_modules` et `package-lock.json`
+- Réexécutez `npm install`
+- Lancez le projet avec `npm run dev`
+
+---
 
 ### Problème : Port déjà utilisé
 
